@@ -15,18 +15,34 @@ class IsbnEncoderImplicit(df: DataFrame) extends Serializable {
     * @return a data frame with new rows for each element of the ISBN code
     */
   def explodeIsbn(): DataFrame = {
-    
-    val ean = df.select(col("Name"),col("Year"),concat(lit("ISBN-EAN: "),substring(col("isbn"),7,3)).as("ISBN"))
-    val group = df.select(col("Name"),col("Year"),concat(lit("ISBN-GROUP: "),substring(col("isbn"),11,2)).as("ISBN"))
-    val publisher = df.select(col("Name"),col("Year"),concat(lit("ISBN-PUBLISHER: "),substring(col("isbn"),14,4)).as("ISBN"))
-    val title = df.select(col("Name"),col("Year"),concat(lit("ISBN-TITLE: "),substring(col("isbn"),18,3)).as("ISBN"))
-    
-    val temp = df.unionAll(ean.select(col("Name"),col("Year"),col("ISBN")))
-    val temp2 = temp.unionAll(group.select(col("Name"),col("Year"),col("ISBN")))
-    val temp3 = temp2.unionAll(publisher.select(col("Name"),col("Year"),col("ISBN")))
-    val output = temp3.unionAll(title.select(col("Name"),col("Year"),col("ISBN")))
 
-    return output
+    if ( df.head(1).nonEmpty ){
+
+       if ( df.filter(col("isbn") === null ).count() == 0 ){
+
+         if ( df.filter(length(col("isbn")) === 19 ).count() > 0 ){
+            val ean = df.select(col("Name"),col("Year"),concat(lit("ISBN-EAN: "),substring(col("isbn"),7,3)).as("ISBN"))
+            val group = df.select(col("Name"),col("Year"),concat(lit("ISBN-GROUP: "),substring(col("isbn"),11,2)).as("ISBN"))
+            val publisher = df.select(col("Name"),col("Year"),concat(lit("ISBN-PUBLISHER: "),substring(col("isbn"),14,4)).as("ISBN"))
+            val title = df.select(col("Name"),col("Year"),concat(lit("ISBN-TITLE: "),substring(col("isbn"),18,3)).as("ISBN"))
+    
+            val temp = df.unionAll(ean.select(col("Name"),col("Year"),col("ISBN")))
+            val temp2 = temp.unionAll(group.select(col("Name"),col("Year"),col("ISBN")))
+            val temp3 = temp2.unionAll(publisher.select(col("Name"),col("Year"),col("ISBN")))
+            val output = temp3.unionAll(title.select(col("Name"),col("Year"),col("ISBN")))
+
+            return output
+         }else{   
+             println("Invalid ISBN Number")
+              }
+      }else{
+            println("The ISBN Number is null")
+          }
+     }else{
+         println("There is no ISBN number to validated")
+      }
+
+    
   }
 }
 
